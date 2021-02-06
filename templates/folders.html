@@ -91,10 +91,11 @@
                 <li class="waves-effect hoverable">
                     <div class="row valign-wrapper" style="margin-bottom: 0px;">
                         <div class="col s4">
-                            <i class="material-icons left circle white-text">folder</i>
+                            <i class="material-icons left circle white-text small">folder</i>
                             <div class="title">
                                 {{ folder.name }}<br>
-                                <span>toDo: folder info</span>
+                                <span>Number of documents: {{ folder.num_docs }}</span> <br>
+                                <span>Last modified: {{ folder.modified }}</span>
                             </div>
                         </div>
 
@@ -111,31 +112,49 @@
                                     <i class="material-icons left">people</i>Coauthorship graph</a>
                             </div>
                             <div class="col s4">
-                                <a class="waves-effect blue waves-light btn"><i class="material-icons left">cloud</i>button</a>
+                                <a class="waves-effect blue waves-light btn"><i
+                                        class="material-icons left">cloud</i>button</a>
                             </div>
                         </div>
 
                     </div>
                 </li>
+                {% if folder.children %}
+                    {% for child_folder in folder.children %}
+                        <li class="waves-effect hoverable">
+                            <div class="row valign-wrapper" style="margin-bottom: 0px;">
+                                <div class="col s1"></div>
+                                <div class="col s3">
+                                    <i class="material-icons left circle white-text small">folder</i>
+                                    <div class="title">
+                                        {{ child_folder.name }}<br>
+                                        <span>Number of documents: {{ child_folder.num_docs }}</span> <br>
+                                        <span>Last modified: {{ child_folder.modified }}</span>
+                                    </div>
+                                </div>
 
-                {#    <hr class="list-divider">#}
+                                <div class="col s8">
+                                    <div class="col s4">
+                                        <a class="waves-effect blue waves-light btn"
+                                           href="/folder?folder_id={{ child_folder['id'] }}">
+                                            <i class="material-icons left">list</i>List documents
+                                        </a>
+                                    </div>
+                                    <div class="col s4">
+                                        <a class="waves-effect blue waves-light btn"
+                                           href="/graph-coauthors?folder_id={{ child_folder['id'] }}">
+                                            <i class="material-icons left">people</i>Coauthorship graph</a>
+                                    </div>
+                                    <div class="col s4">
+                                        <a class="waves-effect blue waves-light btn"><i
+                                                class="material-icons left">cloud</i>button</a>
+                                    </div>
+                                </div>
 
-
-
-
-                {#            <div class="col s6 m4">#}
-                {#                <div class="card blue-grey darken-1">#}
-                {#                    <div class="card-content white-text">#}
-                {#                        <span class="card-title">{{ folder.name }}</span>#}
-                {#                        <p>ToDo: optional text</p>#}
-                {#                    </div>#}
-                {#                    <div class="card-action">#}
-                {#                        <a href="/folder?folder_id={{ folder['id'] }}">List Documents</a><br>#}
-                {#                        <a href="/graph-coauthors?folder_id={{ folder['id'] }}">Plot Co-authorship</a><br>#}
-                {#                        <a href="#">Plot Author citations</a>#}
-                {#                    </div>#}
-                {#                </div>#}
-                {#            </div>#}
+                            </div>
+                        </li>
+                    {% endfor %}
+                {% endif %}
             {% endfor %}
         </ul>
     </div>

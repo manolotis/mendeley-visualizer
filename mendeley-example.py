@@ -51,7 +51,8 @@ def list_folders():
 
     mendeley_session = get_session_from_cookies()
     name = mendeley_session.profiles.me.display_name
-    folders = _get_folders(mendeley_session)
+    # folders = _get_folders(mendeley_session)
+    folders = _get_folder_tree(mendeley_session)
 
     return render_template('folders.html', folders=folders, name=name)
 
@@ -83,12 +84,10 @@ def graph_coauthors():
     author_counts_sort = _get_author_counts(docs)
     max_author_count = _get_max_author_count(author_counts_sort)
 
-
     G = _get_author_graph_json(docs, author_counts_sort, max_author_count, min_author_count)
     with open(json_url, 'w') as outfile:
         print("saving to ", outfile.name)
         json.dump(G, outfile)
-
 
     return render_template('graph-coauthors.html', G=G, folder_name=folder_name)
 
@@ -160,7 +159,36 @@ def serve(path):
 
 def _get_folders(mendeley_session):
     folders = mendeley_session.request("GET", "https://api.mendeley.com/folders").json()
+    for i in range(len(folders)):
+        url = 'https://api.mendeley.com/folders/{}/documents'.format(folders[i]['id'])
+        folder_doc_ids = mendeley_session.request("GET", url).json()
+        folders[i]['num_docs'] = len(folder_doc_ids)
+        folders[i]['docs'] = folder_doc_ids
     return folders
+
+
+# for now only 1 sublevel
+def _get_folder_tree(mendeley_session):
+    folders = _get_folders(mendeley_session)
+    parent_folders = []
+    children_folders = []
+
+    for folder in folders:
+        if "parent_id" not in folder:
+            parent_folders.append(folder)
+        else:
+            children_folders.append(folder)
+
+    for folder in children_folders:
+        for i in range(len(parent_folders)):
+            parent_folder = parent_folders[i]
+            if folder['parent_id'] == parent_folder['id']:
+                if "children" not in parent_folder:
+                    parent_folder['children'] = []
+                parent_folder['children'].append(folder)
+
+    print(parent_folders)
+    return parent_folders
 
 
 def _get_children_folders(mendeley_session, parent_id, include_parent=False):
@@ -202,12 +230,13 @@ def _get_author_counts(docs, sort=True):
     author_counts = {}
 
     for doc in docs:
-        for author in doc.authors:
-            author_name = "{} {}".format(author.first_name, author.last_name)
-            if author_name not in author_counts:
-                author_counts[author_name] = 1
-            else:
-                author_counts[author_name] += 1
+        if doc.authors is not None:
+            for author in doc.authors:
+                author_name = "{} {}".format(author.first_name, author.last_name)
+                if author_name not in author_counts:
+                    author_counts[author_name] = 1
+                else:
+                    author_counts[author_name] += 1
 
     if not sort:
         return author_counts
@@ -307,25 +336,26 @@ def _get_author_links(docs, nodes):
     added_links = set()
 
     for doc in docs:
-        for author in doc.authors:
-            author_name = "{} {}".format(author.first_name, author.last_name)
-            other_authors = [a for a in doc.authors if a != author]
-            for other_author in other_authors:
-                other_author_name = "{} {}".format(other_author.first_name, other_author.last_name)
-                try:
-                    source, target = author2index[author_name], author2index[other_author_name]
-                    # source, target = author_name, other_author_name
-                except KeyError:
-                    print("skipping {} due to key error!".format(other_author_name))
-                    continue
-                link = {
-                    "source": source,
-                    "target": target,
-                    "value": 1,  # todo: update
-                }
-                if (source, target) not in added_links and (target, source) not in added_links and source != target:
-                    added_links.add((source, target))
-                    links.append(link)
+        if doc.authors is not None:
+            for author in doc.authors:
+                author_name = "{} {}".format(author.first_name, author.last_name)
+                other_authors = [a for a in doc.authors if a != author]
+                for other_author in other_authors:
+                    other_author_name = "{} {}".format(other_author.first_name, other_author.last_name)
+                    try:
+                        source, target = author2index[author_name], author2index[other_author_name]
+                        # source, target = author_name, other_author_name
+                    except KeyError:
+                        print("skipping {} due to key error!".format(other_author_name))
+                        continue
+                    link = {
+                        "source": source,
+                        "target": target,
+                        "value": 1,  # todo: update
+                    }
+                    if (source, target) not in added_links and (target, source) not in added_links and source != target:
+                        added_links.add((source, target))
+                        links.append(link)
 
     return links
 
