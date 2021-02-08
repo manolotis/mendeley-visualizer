@@ -2,13 +2,12 @@ from flask import Flask, redirect, render_template, request, session, send_from_
 import yaml
 import json
 import numpy as np
-import os
+import os, sys
 
 from mendeley import Mendeley
 from mendeley.session import MendeleySession
 
-# with open('./config.yml') as f:
-with open('/home/manolotis/sandbox/mendeley-visualizer/config.yml') as f:
+with open(os.path.join(os.path.dirname(__file__), 'config.yml')) as f:
     config = yaml.load(f)
 
 REDIRECT_URI = 'http://localhost:5000/oauth'
