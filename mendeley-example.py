@@ -2,7 +2,9 @@ from flask import Flask, redirect, render_template, request, session, send_from_
 import yaml
 import json
 import numpy as np
-import os, sys
+import os
+import requests
+from tqdm import tqdm
 
 from mendeley import Mendeley
 from mendeley.session import MendeleySession
@@ -100,6 +102,7 @@ def show_documents_in_folder():
     folder_id = request.args.get('folder_id')
     folder_name = _get_folder_name(mendeley_session, folder_id)
     docs = _get_documents_in_folder_and_subfolders(mendeley_session, folder_id, unique=True)
+    docs = _add_citation_counts(docs)
     print(docs)
 
     return render_template('library.html', docs=docs, folder_name=folder_name)
@@ -357,6 +360,42 @@ def _get_author_links(docs, nodes):
                         links.append(link)
 
     return links
+
+
+def _add_citation_counts(docs):
+    # docs = _add_citation_counts_crossref(docs)
+    docs = _add_citation_counts_scholar(docs)
+    docs = _add_citation_counts_scopus(docs)
+    return docs
+
+# faulty implementation
+def _add_citation_counts_crossref(docs):
+    print("Getting citations from crossref...")
+    for i in tqdm(range(len(docs))):
+        doc = docs[i]
+        if 'doi' not in doc.identifiers:
+            continue
+        doi = doc.identifiers['doi']
+        url = "https://api.crossref.org/works/{}".format(doi)
+        data = requests.get(url).json()
+        try:
+            citation_count = data['message']["is-referenced-by-count"]
+        except KeyError:
+            continue
+        docs[i].citation_count_crossref = citation_count
+    return docs
+
+
+def _add_citation_counts_scholar(docs):
+    for i in range(len(docs)):
+        docs[i].citation_count_scholar = "toDo 2"
+    return docs
+
+
+def _add_citation_counts_scopus(docs):
+    for i in range(len(docs)):
+        docs[i].citation_count_scopus = "toDo3 "
+    return docs
 
 
 def get_session_from_cookies():

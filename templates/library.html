@@ -80,51 +80,127 @@
 
 <div class="container">
     <h1 class="header center orange-text">Documents in {{ folder_name }}</h1>
+
     <div class="row">
-        <ul class="list">
+        <table class="highlight responsive-table">
+            <thead>
+            <tr>
+                <th>Title</th>
+                <th>Year</th>
+                <th>Authors</th>
+                <th>DOI</th>
+                <th>Arxiv</th>
+                <th>Citations (Crossref)</th>
+                <th>Citations (Scholar)</th>
+                <th>Citations (Scopus)</th>
+            </tr>
+            </thead>
+
+            <tbody>
             {% for doc in docs %}
-                <li class="waves-effect hoverable">
-                    <div class="row valign-wrapper" style="margin-bottom: 0px;">
-                        <div class="col s10">
-                            <i class="material-icons left circle white-text small">insert_drive_file</i>
-                            <div class="title">
-                                <b>{{ doc.title }}</b>
-                                <br>
-                                <span>{{ doc.year }}</span>
-                                <br>
-                                Authors:
-                                {% for author in doc.authors %}
-                                    {% if loop.last %}
-                                        <span>{{ author.first_name }} {{ author.last_name }}</span>
-                                    {% else %}
-                                        <span>{{ author.first_name }} {{ author.last_name }}, </span>
-                                    {% endif %}
-                                {% endfor %}
-                                <br>
-
-                            </div>
-                        </div>
-                        <div class="col s2">
-                            {% if doc.identifiers.doi %}
+                <tr>
+                    <td><b>{{ doc.title }}</b></td>
+                    <td>{{ doc.year }}</td>
+                    <td>
+                        {% for author in doc.authors %}
+                            {% if loop.last %}
+                                <span>{{ author.first_name }} {{ author.last_name }}</span>
+                            {% else %}
+                                <span>{{ author.first_name }} {{ author.last_name }}, </span>
+                            {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% if doc.identifiers.doi %}
                             <a href="https://doi.org/{{ doc.identifiers.doi }}" target="_blank">
-                                <i class="material-icons left circle white-text">open_in_new</i>
+                                <i class="material-icons left circle">open_in_new</i>
                             </a>
-                            {% endif %}
-
-                            {% if doc.identifiers.arxiv %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if doc.identifiers.arxiv %}
                             <a href="https://arxiv.org/abs/{{ doc.identifiers.arxiv }}" target="_blank">
-                                <i class="material-icons left circle white-text">open_in_new</i>
+                                <i class="material-icons left circle">open_in_new</i>
                             </a>
-                            {% endif %}
-
-                        </div>
-                    </div>
-                </li>
-
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if doc.citation_count_crossref %}
+                            {{ doc.citation_count_crossref }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                <td>
+                        {% if doc.citation_count_scholar %}
+                            {{ doc.citation_count_scholar }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                <td>
+                        {% if doc.citation_count_scopus %}
+                            {{ doc.citation_count_scopus }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
             {% endfor %}
-        </ul>
+            </tbody>
+        </table>
     </div>
-    <br><br>
+    {#    <div class="row">#}
+    {#        <ul class="list">#}
+    {#            {% for doc in docs %}#}
+    {#                <li class="waves-effect hoverable">#}
+    {#                    <div class="row valign-wrapper" style="margin-bottom: 0px;">#}
+    {#                        <div class="col s10">#}
+    {#                            <i class="material-icons left circle white-text small">insert_drive_file</i>#}
+    {#                            <div class="title">#}
+    {#                                <b>{{ doc.title }}</b>#}
+    {#                                <br>#}
+    {#                                <span>{{ doc.year }}</span>#}
+    {#                                <br>#}
+    {#                                Authors:#}
+    {#                                {% for author in doc.authors %}#}
+    {#                                    {% if loop.last %}#}
+    {#                                        <span>{{ author.first_name }} {{ author.last_name }}</span>#}
+    {#                                    {% else %}#}
+    {#                                        <span>{{ author.first_name }} {{ author.last_name }}, </span>#}
+    {#                                    {% endif %}#}
+    {#                                {% endfor %}#}
+    {#                                <br>#}
+    {##}
+    {#                            </div>#}
+    {#                        </div>#}
+    {#                        <div class="col s2">#}
+    {#                            {% if doc.identifiers.doi %}#}
+    {#                                <a href="https://doi.org/{{ doc.identifiers.doi }}" target="_blank">#}
+    {#                                    <i class="material-icons left circle white-text">open_in_new</i>#}
+    {#                                </a>#}
+    {#                            {% endif %}#}
+    {##}
+    {#                            {% if doc.identifiers.arxiv %}#}
+    {#                                <a href="https://arxiv.org/abs/{{ doc.identifiers.arxiv }}" target="_blank">#}
+    {#                                    <i class="material-icons left circle white-text">open_in_new</i>#}
+    {#                                </a>#}
+    {#                            {% endif %}#}
+    {##}
+    {#                        </div>#}
+    {#                    </div>#}
+    {#                </li>#}
+    {##}
+    {#            {% endfor %}#}
+    {#        </ul>#}
+    {#    </div>#}
+
+    <br>
+    <br>
 </div>
 
 
@@ -146,35 +222,3 @@
 </body>
 </html>
 
-
-{#<!DOCTYPE html>#}
-{#<html lang="en">#}
-{#<head>#}
-{#    <meta charset="utf-8">#}
-{#    <title>Mendeley Python Example</title>#}
-{#</head>#}
-{#<body>#}
-{#<a href="/logout">Logout</a>#}
-{#<h1>{{name}}'s documents</h1>#}
-{##}
-{#<table>#}
-{#    {% for doc in docs %}#}
-{#    <tr>#}
-{#        <td><a href="/document?document_id={{doc['id']}}">{{doc.title}}</a></td>#}
-{#        {% if doc.file_attached %}#}
-{#            <td><a href="/download?document_id={{doc['id']}}">Download</a></td>#}
-{#        {% endif %}#}
-{#    </tr>#}
-{#    {% endfor %}#}
-{#</table>#}
-{##}
-{#<hr>#}
-{##}
-{#<form action="/metadataLookup" method="GET">#}
-{#    DOI lookup:#}
-{#    <input type="text" name="doi">#}
-{#    <input type="submit">#}
-{#</form>#}
-{##}
-{#</body>#}
-{#</html>#}
